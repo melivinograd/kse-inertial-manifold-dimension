@@ -1,0 +1,13 @@
+{
+    "N": 256,
+    "L": 22,
+    "nu": 1.0,
+    "T": 1000.0,
+    "N_train": 100,
+    "N_modes": 20,
+    "filters": [128, 64, 32],
+    "kernel_size": 5,
+    "batch_size": 16,
+    "epochs": 50,
+    "lr": 0.00075
+}

@@ -54,3 +54,55 @@ def build_model_1d(
     outputs = Conv1D(n_channels, kernel_size=3, padding="same", activation=None, name="decoded")(x)
 
     return Model(inputs, outputs)
+
+# --------------------------------------------------
+# Decoder-only CNN for truncated Fourier input
+# --------------------------------------------------
+
+def build_fourier_decoder_conv1d(
+    N_modes: int,
+    Nx: int,
+    filters: list = [128, 64, 32],
+    kernel_size: int = 5,
+):
+    """
+    Map truncated Fourier coefficients (real+imag)
+    to spatial field u(x).
+
+    Input  : (2*N_modes,)
+    Output : (Nx, 1)
+    """
+
+    inputs = Input(shape=(2 * N_modes,))
+
+    # Determine starting spatial resolution
+    n_upsamples = len(filters)
+    start_L = Nx // (2 ** n_upsamples)
+    start_C = filters[0]
+
+    # Dense projection → coarse grid
+    x = Dense(start_L * start_C, activation="relu")(inputs)
+    x = Reshape((start_L, start_C))(x)
+
+    # Upsampling blocks
+    for f in filters:
+        x = UpSampling1D(2)(x)
+        x = Conv1D(
+            f,
+            kernel_size=kernel_size,
+            padding="same",
+            activation="relu",
+        )(x)
+
+    # Final reconstruction layer
+    x = Conv1D(
+        1,
+        kernel_size=kernel_size,
+        padding="same",
+        activation="linear",
+    )(x)
+
+    # Crop in case of slight overshoot
+    x = Lambda(lambda t: t[:, :Nx, :])(x)
+
+    return Model(inputs, x)
