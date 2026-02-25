@@ -9,7 +9,7 @@ pipeline used to study dimensional scaling in the 1D Kuramoto–Sivashinsky (KS)
 ## Repository Structure
 ```
 simulations/   → KS solver and dataset generation
-cnn/           → neural network training
+cnn/           → neural network training (Autoencoder and Fourier Encoder)
 ```
 
 ## Dataset Generation
@@ -51,7 +51,7 @@ and run `create_dataset.py`.
 
 Training runs are configured via small JSON files stored under folders of the form:
 
-`L{L}_nu{nu}/`
+`cnn/configs/autoencoder/L{L}_nu{nu}/`
 
 In this repository we include **two example configs**:
 
@@ -89,4 +89,19 @@ Example:
 python train_model.py
 ```
 
+## Fourier Encoder
+
+In addition to the convolutional autoencoder, we include a model that instead of the encoder does a Fourier Truncation (Fourier-Encoder in the paper).
+
+The Fourier model is trained using:
+```
+python train_fourier_encoder.py
+```
+
+The config files are in:
+
+`cnn/configs/fourier_encoder/L{L}_nu{nu}/`
+
+Fourier-specific parameters in the JSON configuration include:
+- `N_modes` — number of retained Fourier modes
 
