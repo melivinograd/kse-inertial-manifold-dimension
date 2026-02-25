@@ -5,18 +5,14 @@ Code accompanying the paper “A prediction for the dimension of the inertial ma
 This repository contains the numerical experiments and dataset generation
 pipeline used to study dimensional scaling in the 1D Kuramoto–Sivashinsky (KS) equation.
 
-Datasets are generated using a pseudo-spectral solver (`spooky` backend),
-and are used for downstream dimensionality-reduction
 
 ## Dataset Generation
 
-Datasets are created with:
+Datasets are generated using a pseudo-spectral solver (`spooky` backend). They are created with:
 
 ```bash
 python create_dataset.py
 ```
-
-Simulation parameters are defined in:
 
 ### Simulation Parameters
 
@@ -44,3 +40,47 @@ and run `create_dataset.py`.
 | 100 | 1.0  | 1e-05  | 1000.0 | 256  | 10000  | 100k  |
 | 200 | 0.1  | 1e-05  | 1100.0 | 512  | 10000  | 100k  |
 | 200 | 1.0  | 1e-05  | 1000.0 | 256  | 10000  | 100k  |
+
+## Training configs (JSON)
+
+Training runs are configured via small JSON files stored under folders of the form:
+
+`L{L}_nu{nu}/`
+
+In this repository we include **two example configs**:
+
+- `L22_nu1.0/7_0.json` — *small network*
+- `L22_nu1.0/7_1.json` — *large network*
+
+### Naming convention
+
+The JSON filenames follow the pattern:
+
+`{dh}_{model_id}.json`
+
+- The first number (`7`) corresponds to the latent dimension `dh`.
+- The second number (`0`, `1`, …) distinguishes different architectural variants
+  (e.g. different numbers of filters).
+
+For example:
+
+- `7_0.json` → latent dimension `dh = 7`, small architecture
+- `7_1.json` → latent dimension `dh = 7`, larger architecture
+
+These files are meant as **templates**. In our full set of experiments we used additional configurations
+(e.g. different filter widths and latent sizes), but we do not track the entire sweep in the public repo.
+
+To reproduce or extend experiments, copy one of the example JSONs and modify:
+
+- `dh` — latent dimension
+- `encoder`, `kernel_size`, `strides` — architecture
+- `lr`, `batch_size`, `patience` — training parameters
+- `L`, `nu`, `T`, `N_train` — dataset selection
+
+Example:
+
+```bash
+python train_model.py
+```
+
+
