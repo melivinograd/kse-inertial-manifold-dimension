@@ -1,10 +1,16 @@
 # Kuramoto–Sivashinsky Inertial Manifold Dimension
 
-Code accompanying the paper “A prediction for the dimension of the inertial manifold of the Kuramoto–Sivashinsky equation.”
+Code accompanying the paper
+“A prediction for the dimension of the inertial manifold of the Kuramoto–Sivashinsky equation.”
 
 This repository contains the numerical experiments and dataset generation
 pipeline used to study dimensional scaling in the 1D Kuramoto–Sivashinsky (KS) equation.
 
+## Repository Structure
+```
+simulations/   → KS solver and dataset generation
+cnn/           → neural network training
+```
 
 ## Dataset Generation
 
