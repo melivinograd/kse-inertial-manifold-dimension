@@ -14,7 +14,7 @@ cnn/           → neural network training (Autoencoder and Fourier Encoder)
 
 ## Dataset Generation
 
-Datasets are generated using a pseudo-spectral solver (`spooky` backend). They are created with:
+Datasets are generated using a pseudo-spectral solver ([`spooky` backend](https://github.com/PatricioClark/spooky)). They are created with:
 
 ```bash
 python create_dataset.py
