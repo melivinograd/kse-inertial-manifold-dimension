@@ -53,6 +53,24 @@ RUNS = {
     2: ([64, 128, 256, 512], 0),
 }
 
+# run -> (decoder filters, seed), for the Fourier encoder
+FOURIER_RUNS = {
+    0: ([256, 128, 64, 32], 0),
+    1: ([256, 128, 64, 32], 1),
+    2: ([512, 256, 128, 64], 0),
+}
+
+# The Fourier encoder keeps N_modes complex modes, i.e. 2 * N_modes real
+# degrees of freedom, so the bottleneck comparable to the autoencoder's dh is
+# 2 * N_modes. Configs are shipped at N_modes = d_A / 2. Cases listed here are
+# the ones for which the paper reports Fourier-encoder results.
+FOURIER_CASES = [
+    (22, 0.01), (22, 0.1), (22, 1.0),
+    (44, 0.01), (44, 0.1), (44, 1.0),
+    (66, 0.01), (66, 0.1), (66, 1.0),
+    (100, 1.0), (200, 1.0),
+]
+
 KERNEL = 5
 STRIDE = 2
 
@@ -80,10 +98,31 @@ def make_config(L, nu, Nx, T, N_train, dh, encoder, seed):
     }
 
 
+def make_fourier_config(L, nu, Nx, T, N_train, N_modes, filters, seed):
+    return {
+        "N": Nx,
+        "N_modes": N_modes,
+
+        "filters": filters,
+        "kernel_size": KERNEL,
+
+        "lr": 7.5e-4,
+        "batch_size": 16,
+        "patience": 2,
+        "epochs": 100,
+        "seed": seed,
+
+        "L": L,
+        "nu": nu,
+        "T": T,
+        "N_train": N_train,
+    }
+
+
 def main():
     bottlenecks = [int(a) for a in sys.argv[1:]]
 
-    n_written = 0
+    n_ae = 0
     for (L, nu), (Nx, T, N_train, d_A) in sorted(CASES.items()):
         out_dir = os.path.join("configs", "autoencoder", f"L{L}_nu{nu}")
         os.makedirs(out_dir, exist_ok=True)
@@ -95,9 +134,28 @@ def main():
                 with open(path, "w") as f:
                     json.dump(cfg, f, indent=4)
                     f.write("\n")
-                n_written += 1
+                n_ae += 1
 
-    print(f"wrote {n_written} configs for {len(CASES)} (L, nu) cases")
+    n_f = 0
+    for L, nu in FOURIER_CASES:
+        Nx, T, N_train, d_A = CASES[(L, nu)]
+        out_dir = os.path.join("configs", "fourier_encoder", f"L{L}_nu{nu}")
+        os.makedirs(out_dir, exist_ok=True)
+
+        # A requested bottleneck d corresponds to d / 2 retained modes.
+        mode_counts = [round(d / 2) for d in bottlenecks] or [round(d_A / 2)]
+        for N_modes in mode_counts:
+            for run, (filters, seed) in FOURIER_RUNS.items():
+                cfg = make_fourier_config(L, nu, Nx, T, N_train,
+                                          N_modes, filters, seed)
+                path = os.path.join(out_dir, f"{N_modes}_{run}.json")
+                with open(path, "w") as f:
+                    json.dump(cfg, f, indent=4)
+                    f.write("\n")
+                n_f += 1
+
+    print(f"wrote {n_ae} autoencoder configs for {len(CASES)} (L, nu) cases")
+    print(f"wrote {n_f} Fourier-encoder configs for {len(FOURIER_CASES)} cases")
 
 
 if __name__ == "__main__":

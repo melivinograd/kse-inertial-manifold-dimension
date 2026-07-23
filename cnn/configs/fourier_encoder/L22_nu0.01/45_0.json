@@ -1,0 +1,20 @@
+{
+    "N": 512,
+    "N_modes": 45,
+    "filters": [
+        256,
+        128,
+        64,
+        32
+    ],
+    "kernel_size": 5,
+    "lr": 0.00075,
+    "batch_size": 16,
+    "patience": 2,
+    "epochs": 100,
+    "seed": 0,
+    "L": 22,
+    "nu": 0.01,
+    "T": 2000.0,
+    "N_train": 100
+}

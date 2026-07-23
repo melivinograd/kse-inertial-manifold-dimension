@@ -34,10 +34,6 @@ def load_fourier_dataset(npy_path, N_modes):
     X = np.concatenate([u_hat_trunc.real, u_hat_trunc.imag], axis=1)
     y = u
 
-    # Simple normalization (stable, minimal)
-    X = (X - X.mean(0)) / (X.std(0) + 1e-8)
-    y = (y - y.mean()) / (y.std() + 1e-8)
-
     X = tf.convert_to_tensor(X.astype(np.float32))
     y = tf.convert_to_tensor(y[..., None].astype(np.float32))
 
