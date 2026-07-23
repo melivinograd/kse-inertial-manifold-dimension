@@ -124,15 +124,28 @@ before it, typically within ~50 epochs.
 
 In addition to the convolutional autoencoder, we include a model that instead of the encoder does a Fourier Truncation (Fourier-Encoder in the paper).
 
-The Fourier model is trained using:
-```
-python train_fourier_encoder.py
+The config files are in
+
+`cnn/configs/fourier_encoder/L{L}_nu{nu}/{N_modes}_{run}.json`
+
+and the model is trained the same way as the autoencoder:
+
+```bash
+cd cnn
+python train_fourier_encoder.py configs/fourier_encoder/L44_nu0.1/30_0.json
 ```
 
-The config files are in:
-
-`cnn/configs/fourier_encoder/L{L}_nu{nu}/`
+The three runs follow the same convention as above: run 0 is the reference
+network, run 1 repeats it with a different seed, and run 2 uses a wider
+decoder (`[512, 256, 128, 64]` instead of `[256, 128, 64, 32]`).
 
 Fourier-specific parameters in the JSON configuration include:
 - `N_modes` — number of retained Fourier modes
+- `filters`, `kernel_size` — decoder architecture
+
+The encoder keeps `N_modes` complex modes, i.e. `2 * N_modes` real degrees of
+freedom, so a Fourier-encoder config with `N_modes` modes is compared against
+an autoencoder config with `dh = 2 * N_modes`. `make_configs.py` writes the
+Fourier configs together with the autoencoder ones and applies this factor,
+so the bottlenecks passed on the command line are in units of `dh`.
 
