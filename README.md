@@ -12,6 +12,15 @@ simulations/   → KS solver and dataset generation
 cnn/           → neural network training (Autoencoder and Fourier Encoder)
 ```
 
+## Installation
+
+The code was run with Python 3.11. Dependencies are pinned in
+`requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Dataset Generation
 
 Datasets are generated using a pseudo-spectral solver ([`spooky` backend](https://github.com/PatricioClark/spooky)). They are created with:

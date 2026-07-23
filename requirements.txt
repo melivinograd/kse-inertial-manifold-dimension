@@ -1,0 +1,9 @@
+# Python 3.11
+
+# Network training (cnn/)
+tensorflow==2.12.0
+numpy==1.23.5
+
+# Pseudo-spectral KS solver used by simulations/create_dataset.py.
+# Not on PyPI, installed from source.
+spookyflows @ git+https://github.com/PatricioClark/spooky.git@a4a361d
