@@ -1,5 +1,6 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Conv1D, Conv1DTranspose, Dense, Reshape, GlobalAveragePooling1D
+from tensorflow.keras.layers import (Input, Conv1D, Conv1DTranspose, Dense, Reshape,
+                                      GlobalAveragePooling1D, Flatten, Lambda, UpSampling1D)
 from tensorflow.keras.models import Model
 
 

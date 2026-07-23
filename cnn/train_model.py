@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import numpy as np
 import tensorflow as tf
@@ -30,10 +31,19 @@ def main():
     # ------------------------------------------------------------------
     # Load run parameters (written/selected externally)
     # ------------------------------------------------------------------
-    params_dir = "configs/L22_nu1.0"
-    param_file = "7_1.json"
+    # Config to train. Pass a path on the command line to run any config in
+    # the sweep, e.g.
+    #   python3 train_model.py configs/autoencoder/L44_nu0.1/55_0.json
+    # Defaults to the provided L=22, nu=1.0, d=7 example if no argument given.
+    if len(sys.argv) > 1:
+        config_path = sys.argv[1]
+    else:
+        config_path = "configs/autoencoder/L22_nu1.0/7_0.json"
 
-    with open(os.path.join(params_dir, param_file), "r") as f:
+    params_dir = os.path.dirname(config_path)
+    param_file = os.path.basename(config_path)
+
+    with open(config_path, "r") as f:
         p = json.load(f)
 
     # Core parameters
