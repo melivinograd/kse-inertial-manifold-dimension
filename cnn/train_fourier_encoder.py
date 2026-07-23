@@ -1,5 +1,7 @@
 import os
+import sys
 import json
+import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import CSVLogger, ReduceLROnPlateau, ModelCheckpoint
@@ -55,10 +57,23 @@ def prepare_dataset(ds, batch_size=32, shuffle=True):
 def main():
 
     # -------- Config path --------
-    config_path = "configs/L22_nu1.0/fourier_20.json"
+    # Pass a path on the command line to run any config, e.g.
+    #   python3 train_fourier_encoder.py configs/fourier_encoder/L22_nu1.0/7_0.json
+    # Defaults to the provided L=22, nu=1.0 example if no argument given.
+    if len(sys.argv) > 1:
+        config_path = sys.argv[1]
+    else:
+        config_path = "configs/fourier_encoder/L22_nu1.0/7_0.json"
 
     with open(config_path) as f:
         p = json.load(f)
+
+    # Seed every RNG that affects the run: weight initialisation, the
+    # tf.data shuffle of the training set, and any numpy-side randomness.
+    seed = int(p.get("seed", 0))
+    random.seed(seed)
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
 
     Nx = int(p["N"])
     L = int(p["L"])
@@ -122,10 +137,10 @@ def main():
 
     model.summary()
 
-    # -------- Output directory --------
-    run_dir = (
-        f"fourier_L{L}_nu{nu}_"
-        f"Nm{N_modes}"
+    # -------- Output directory (one folder per JSON) --------
+    run_dir = os.path.join(
+        os.path.dirname(config_path),
+        os.path.splitext(os.path.basename(config_path))[0],
     )
     os.makedirs(run_dir, exist_ok=True)
 
@@ -143,7 +158,7 @@ def main():
     reduce_lr = ReduceLROnPlateau(
         monitor="val_loss",
         factor=0.75,
-        patience=2,
+        patience=int(p.get("patience", 2)),
         min_lr=1e-6,
         verbose=1,
     )
