@@ -49,45 +49,76 @@ and run `create_dataset.py`.
 
 ## Training configs (JSON)
 
-Training runs are configured via small JSON files stored under folders of the form:
+Training runs are configured via small JSON files stored under
 
-`cnn/configs/autoencoder/L{L}_nu{nu}/`
+`cnn/configs/autoencoder/L{L}_nu{nu}/{dh}_{run}.json`
 
-In this repository we include **two example configs**:
+where `dh` is the bottleneck (latent) dimension and `run` identifies one of the
+three repetitions described below. Configs are provided for **all 14 (L, ν)
+cases** in the paper, at the bottleneck `dh = d_A` reported for that case.
 
-- `L22_nu1.0/7_0.json` — *small network*
-- `L22_nu1.0/7_1.json` — *large network*
+Train a single config with:
 
-### Naming convention
+```bash
+cd cnn
+python train_model.py configs/autoencoder/L44_nu0.1/60_0.json
+```
 
-The JSON filenames follow the pattern:
+Outputs (best checkpoint, `training_log.csv`) are written to a directory named
+after the config, e.g. `configs/autoencoder/L44_nu0.1/60_0/`.
 
-`{dh}_{model_id}.json`
+### The three runs
 
-- The first number (`7`) corresponds to the latent dimension `dh`.
-- The second number (`0`, `1`, …) distinguishes different architectural variants
-  (e.g. different numbers of filters).
+All three runs of a given case share the same dataset, the same train/test
+split and the same optimisation settings. They differ only as follows:
 
-For example:
+| run | encoder filters        | seed | isolates            |
+|-----|------------------------|------|---------------------|
+| 0   | `[32, 64, 128, 256]`   | 0    | reference           |
+| 1   | `[32, 64, 128, 256]`   | 1    | initialisation      |
+| 2   | `[64, 128, 256, 512]`  | 0    | network capacity    |
 
-- `7_0.json` → latent dimension `dh = 7`, small architecture
-- `7_1.json` → latent dimension `dh = 7`, larger architecture
+Run 0 vs. run 1 measures how much `d_A` moves when the *same* network is
+retrained from a different initialisation. Run 0 vs. run 2 checks that `d_A`
+does not move when the network is made larger (≈3.2× the parameters at
+`L = 44`, `ν = 0.1`), which is what one expects if `d_A` reflects the
+dimension of the attractor rather than the capacity of the model.
 
-These files are meant as **templates**. In our full set of experiments we used additional configurations
-(e.g. different filter widths and latent sizes), but we do not track the entire sweep in the public repo.
+The seed set in the config controls the weight initialisation, the `tf.data`
+shuffling of the training set, and any numpy-side randomness, so runs are
+reproducible.
 
-To reproduce or extend experiments, copy one of the example JSONs and modify:
+### Reproducing a full MSE(d) curve
+
+The estimate `d_A` is read off the knee of the reconstruction error as a
+function of the bottleneck dimension, so reproducing a figure means training
+the same case at several `dh`. Use `make_configs.py` to write those configs:
+
+```bash
+cd cnn
+python make_configs.py 40 50 55 60 70 80    # every (L, nu), these bottlenecks
+```
+
+This regenerates `configs/autoencoder/L{L}_nu{nu}/{dh}_{run}.json` for each
+requested `dh` and each of the three runs. Calling it with no arguments
+restores the shipped set (one bottleneck per case, at `dh = d_A`).
+
+To change anything else, edit the JSON directly:
 
 - `dh` — latent dimension
 - `encoder`, `kernel_size`, `strides` — architecture
-- `lr`, `batch_size`, `patience` — training parameters
-- `L`, `nu`, `T`, `N_train` — dataset selection
+- `lr`, `batch_size`, `patience`, `epochs`, `seed` — training parameters
+- `L`, `nu`, `T`, `N_train` — dataset selection. These are used to locate the
+  dataset directory `simulations/KS_dataset_L{L}_nu{nu}_N{Nx}_T{T}_{N_train}k`,
+  so they must match the parameters the dataset was generated with.
 
-Example:
+### Training protocol
 
-```bash
-python train_model.py
-```
+Networks are trained with Adam on a mean-squared reconstruction loss,
+learning rate `7.5e-4`, batch size 16, with `ReduceLROnPlateau`
+(factor 0.75, patience 2, minimum learning rate `1e-6`) and best-validation-loss
+checkpointing. `epochs` is an upper bound: the validation loss plateaus well
+before it, typically within ~50 epochs.
 
 ## Fourier Encoder
 
