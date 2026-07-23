@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import CSVLogger, ReduceLROnPlateau, ModelCheckpoint
@@ -45,6 +46,13 @@ def main():
 
     with open(config_path, "r") as f:
         p = json.load(f)
+
+    # Seed every RNG that affects the run: weight initialisation, the
+    # tf.data shuffle of the training set, and any numpy-side randomness.
+    seed = int(p.get("seed", 0))
+    random.seed(seed)
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
 
     # Core parameters
     Nx = int(p["N"])
