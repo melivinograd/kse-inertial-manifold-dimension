@@ -29,6 +29,13 @@ Datasets are generated using a pseudo-spectral solver ([`spooky` backend](https:
 python create_dataset.py
 ```
 
+Each run writes three disjoint splits to the dataset directory — `u_train`
+(80%), `u_val` (10%) and `u_test` (10%) — all normalised by the training-set
+maximum. The validation split is used for checkpointing and the learning-rate
+schedule during training; the test split is held out and never seen during
+training. The split fractions are set by `train_fraction` / `val_fraction` at
+the top of `create_dataset.py`.
+
 ### Simulation Parameters
 
 Below are the parameter values used to generate the main datasets
@@ -78,8 +85,9 @@ after the config, e.g. `configs/autoencoder/L44_nu0.1/60_0/`.
 
 ### The three runs
 
-All three runs of a given case share the same dataset, the same train/test
-split and the same optimisation settings. They differ only as follows:
+All three runs of a given case share the same dataset, the same
+train/validation/test split and the same optimisation settings. They differ
+only as follows:
 
 | run | encoder filters        | seed | isolates            |
 |-----|------------------------|------|---------------------|
@@ -126,8 +134,11 @@ To change anything else, edit the JSON directly:
 Networks are trained with Adam on a mean-squared reconstruction loss,
 learning rate `7.5e-4`, batch size 16, with `ReduceLROnPlateau`
 (factor 0.75, patience 2, minimum learning rate `1e-6`) and best-validation-loss
-checkpointing. `epochs` is an upper bound: the validation loss plateaus well
-before it, typically within ~50 epochs.
+checkpointing. Both the checkpointing and the learning-rate schedule monitor the
+loss on the `u_val` split; the `u_test` split is reserved for the final
+reconstruction-error evaluation and is never used during training. `epochs` is
+an upper bound: the validation loss plateaus well before it, typically within
+~50 epochs.
 
 ## Fourier Encoder
 

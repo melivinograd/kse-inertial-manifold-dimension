@@ -76,7 +76,9 @@ def main():
     # ------------------------------------------------------------------
     dataset_dir = f"../simulations/KS_dataset_L{L}_nu{nu}_N{Nx}_T{T}_{N_train_k}k"
     train_path = os.path.join(dataset_dir, f"u_train_L{L}_nu{nu}_N{Nx}.npy")
-    val_path = os.path.join(dataset_dir, f"u_test_L{L}_nu{nu}_N{Nx}.npy")
+    # validation set (monitored for checkpointing / LR schedule); the test set
+    # (u_test_...) is held out and never seen during training.
+    val_path = os.path.join(dataset_dir, f"u_val_L{L}_nu{nu}_N{Nx}.npy")
 
     # ------------------------------------------------------------------
     # Output directory (one folder per JSON)

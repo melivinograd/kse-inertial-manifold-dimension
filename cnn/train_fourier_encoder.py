@@ -100,9 +100,11 @@ def main():
         f"u_train_L{L}_nu{nu}_N{Nx}.npy"
     )
 
+    # validation set (monitored for checkpointing / LR schedule); the test set
+    # (u_test_...) is held out and never seen during training.
     val_path = os.path.join(
         dataset_dir,
-        f"u_test_L{L}_nu{nu}_N{Nx}.npy"
+        f"u_val_L{L}_nu{nu}_N{Nx}.npy"
     )
 
     # -------- Build datasets --------

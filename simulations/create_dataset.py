@@ -13,6 +13,9 @@ import params as pm
 N_total = 100_000
 realizations = 10
 train_fraction = 0.8
+val_fraction = 0.1   # validation split (used for checkpointing / LR schedule);
+                     # test = 1 - train_fraction - val_fraction (held out, never
+                     # seen during training)
 
 transient_cut_steps = 1_000_000  # timesteps
 seed = 0
@@ -82,18 +85,23 @@ def main():
     dataset = np.hstack(chunks)       # (Nx, N_total_approx)
     dataset = dataset[:, :N_total]    # enforce exact N_total
 
-    N_train = int(train_fraction * dataset.shape[1])
+    N_total_eff = dataset.shape[1]
+    N_train = int(train_fraction * N_total_eff)
+    N_val = int(val_fraction * N_total_eff)
     u_train = dataset[:, :N_train]
-    u_test = dataset[:, N_train:]
+    u_val = dataset[:, N_train:N_train + N_val]
+    u_test = dataset[:, N_train + N_val:]
 
     max_train = np.max(np.abs(u_train))
     u_train /= max_train
+    u_val /= max_train
     u_test /= max_train
 
     nu_val = getattr(pm, "nu", None)
     nu_tag = "NA" if nu_val is None else str(nu_val)
 
     np.save(os.path.join(save_dir, f"u_train_L{pm.Lx}_nu{nu_tag}_N{pm.Nx}.npy"), u_train)
+    np.save(os.path.join(save_dir, f"u_val_L{pm.Lx}_nu{nu_tag}_N{pm.Nx}.npy"), u_val)
     np.save(os.path.join(save_dir, f"u_test_L{pm.Lx}_nu{nu_tag}_N{pm.Nx}.npy"), u_test)
 
     np.savez(
@@ -103,14 +111,15 @@ def main():
         transient_cut_steps=transient_cut_steps,
         cut_index=cut_index,
         realizations=realizations,
-        N_total_effective=dataset.shape[1],
+        N_total_effective=N_total_eff,
         train_fraction=train_fraction,
+        val_fraction=val_fraction,
         max_train=max_train,
         seed=seed,
     )
 
     print(f"\nSaved dataset in: {save_dir}")
-    print(f"Train shape: {u_train.shape} | Test shape: {u_test.shape}")
+    print(f"Train shape: {u_train.shape} | Val shape: {u_val.shape} | Test shape: {u_test.shape}")
     print(f"Normalization max_train: {max_train:.6g}")
 
 
